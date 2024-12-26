@@ -2,7 +2,8 @@ const express = require('express')
 var cors = require('cors')
 const mongoose = require("mongoose")
 const dotenv = require('dotenv')
-const taskRoutes = require("./src/routers/userRoutes")
+const taskRoutes = require("./src/routers/taskRoutes")
+const userRoutes = require("./src/routers/userRoutes")
 
 dotenv.config("./.env")
 
@@ -23,17 +24,6 @@ mongoose.connect(`mongodb+srv://nidheesh:${dbPassword}@main.sjcjv.mongodb.net/?r
 const app = express()
 
 
-
-const UserSchema = new mongoose.Schema({
-    username: String,
-    email: String,
-    phone: String,
-    password: String
-})
-
-const User = mongoose.model("user", UserSchema)
-
-
 app.use(cors({
     origin: 'http://localhost:5173'
 }))
@@ -46,25 +36,8 @@ app.use((req, res, next)=>{
 })
 
 app.use("", taskRoutes)
+app.use("/user", userRoutes)
 
-let tasks = [
-    {
-        _id: 1,
-        task: "Go to shop",
-    },
-    {
-        _id: 2,
-        task: "Buy Tomato",
-    },
-    {
-        _id: 3,
-        task: "Buy Chilly",
-    },
-    {
-        _id: 4,
-        task: "Pay",
-    },
-]
 
 app.listen(3001, ()=>{
     console.log("Server started on port 3001")
