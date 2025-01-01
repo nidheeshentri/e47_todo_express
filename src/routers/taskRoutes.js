@@ -1,9 +1,17 @@
 const express = require("express")
 const router = express.Router()
 const mongoose = require("mongoose")
+var jwt = require('jsonwebtoken');
+const UserModel = require("../models/userModels")
+
+const encryptKey = "lksjhdhrgfugh234uks"
 
 const TaskSchema = new mongoose.Schema({
     task: {type: String, default: "empty task"},
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "user"
+    }
 });
 
 TaskSchema.pre("remove", (next)=>{
@@ -13,8 +21,11 @@ TaskSchema.pre("remove", (next)=>{
 
 const Task = mongoose.model('task', TaskSchema);
 
-router.get("/", (req, res)=>{
-    Task.find()
+router.get("/", async (req, res)=>{
+    let token = req.headers.authorization
+    let userEmail = jwt.verify(token, encryptKey)
+    let user = await UserModel.findOne({email: userEmail.email})
+    Task.find({userId: user._id})
     .then(taskItems => {
         console.log(taskItems)
         res.json({taskItems, count: taskItems.length})
@@ -25,10 +36,13 @@ router.get("/", (req, res)=>{
     // res.json({tasks})
 })
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
     console.log(req.body)
     const userTask = req.body.task
-    Task.create({task: userTask})
+    const token = req.body.token
+    let userEmail = jwt.verify(token, encryptKey)
+    let user = await UserModel.findOne({email: userEmail.email})
+    Task.create({task: userTask, userId: user._id})
     res.send("Success")
 })
 
